@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nuestra Historia ❤️ — Carta + Quiz</title>
+  <meta name="description" content="Carta de amor interactiva con quiz, animaciones y diseño moderno." />
+  <style>
+    :root {
+      --bg: #0e0f13;
+      --card: rgba(255,255,255,0.08);
+      --card-border: rgba(255,255,255,0.15);
+      --text: #e9ecf1;
+      --muted: #b7c0cc;
+      --accent: #ff5ea7; /* rosa */
+      --accent-2: #8be9fd; /* cyan */
+      --accent-3: #ffd166; /* amarillo */
+      --good: #86efac; /* verde */
+      --bad: #fda4af;  /* rojo claro */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 900px at 10% 10%, #151827 0%, #0e0f13 45%, #0a0b0e 100%);
+      overflow-x: hidden;
+    }
+
+    /* Floating hearts background */
+    .hearts { position: fixed; inset: 0; pointer-events:none; z-index: 0; }
+    .heart { position: absolute; opacity:.18; animation: floatUp linear infinite; }
+    @keyframes floatUp { from { transform: translateY(110vh) scale(.8) rotate(0deg) }
+                         to   { transform: translateY(-15vh) scale(1.1) rotate(360deg) } }
+
+    /* Layout */
+    .wrap { width:min(1100px, 92vw); margin: 0 auto; position: relative; z-index: 1; }
+    header { padding: 64px 0 24px; text-align: center; position: relative; }
+
+    .title {
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: .2px;
+      background: conic-gradient(from 210deg, var(--accent), var(--accent-2), var(--accent-3), var(--accent));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 6px 24px rgba(255, 94, 167, .25));
+    }
+
+    .subtitle { color: var(--muted); margin-top: 8px; font-size: 15px; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin: 28px 0 72px; }
+    @media (min-width: 980px) { .grid { grid-template-columns: 1.1fr .9fr; } }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow);
+      border-radius: 20px;
+      padding: clamp(18px, 3vw, 26px);
+      backdrop-filter: blur(10px) saturate(120%);
+      transform: translateY(6px);
+      transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s;
+    }
+    .card:hover { transform: translateY(0); box-shadow: 0 16px 40px rgba(0,0,0,.45); }
+
+    .card h2 { margin: 0 0 10px; font-size: 22px; }
+    .card p { color: #e7ebf6; opacity:.96; }
+
+    .kiss { display:inline-flex; align-items:center; gap:8px; font-weight:700; }
+
+    /* Quiz */
+    .quiz-card { position: relative; overflow:hidden; }
+    .legend {
+      font-weight: 800; margin-bottom: 6px; font-size: 18px; color: #ffffff;
+    }
+    fieldset { border: 0; padding: 0; margin: 0 0 16px; }
+    .q { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px dashed rgba(255,255,255,.12); }
+
+    .opcion { display:flex; gap: 10px; align-items:flex-start; padding: 8px 10px; border-radius: 12px; cursor: pointer; transition: background .2s, transform .1s; }
+    .opcion:hover { background: rgba(255,255,255,.06); transform: translateX(2px); }
+    .opcion input { margin-top: 2px; }
+
+    .acciones { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    button {
+      border: 0; cursor: pointer; padding: 12px 16px; border-radius: 14px; font-weight: 800; letter-spacing:.2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #0a0b0e; box-shadow: 0 10px 20px rgba(139,233,253,.25);
+      transition: transform .12s ease, filter .2s ease; will-change: transform;
+    }
+    button:hover { filter: brightness(1.07); }
+    button:active { transform: translateY(2px) scale(.99); }
+    .secondary { background: #1a1f2b; color: var(--text); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+
+    .pill { display:inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing:.3px; }
+    .ok { background: rgba(134,239,172,.15); color: var(--good); border:1px solid rgba(134,239,172,.4); }
+    .bad { background: rgba(253,164,175,.12); color: var(--bad); border:1px solid rgba(253,164,175,.4); }
+
+    .score { font-size: clamp(22px, 3.5vw, 34px); font-weight: 900; margin: 8px 0 4px; }
+    .msg { color: var(--muted); margin-bottom: 16px; }
+
+    .result-box { display:none; margin-top: 14px; padding: 14px; border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); }
+    .result-box.show { display:block; animation: pop .45s cubic-bezier(.22,1,.36,1); }
+    @keyframes pop { from { transform: scale(.96); opacity:0 } to { transform: scale(1); opacity:1 } }
+
+    /* Confetti (simple) */
+    .confetti { position: fixed; inset:0; pointer-events:none; z-index: 3; }
+    .confetti i { position: absolute; width: 10px; height: 16px; background: white; opacity:.9; transform: translateY(-20vh) rotate(0); animation: drop linear forwards; }
+    @keyframes drop { to { transform: translateY(110vh) rotate(360deg); opacity:.95 } }
+
+    /* Reveal on scroll */
+    .reveal { opacity: 0; transform: translateY(14px) scale(.99); transition: all .7s cubic-bezier(.22,1,.36,1); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    footer { text-align:center; color: var(--muted); font-size: 12px; padding: 50px 0 28px; }
+    a.link { color: var(--accent-2); text-decoration: none; border-bottom: 1px dashed rgba(139,233,253,.5); }
+  </style>
+</head>
+<body>
+  <!-- Floating hearts -->
+  <div class="hearts" aria-hidden="true" id="hearts"></div>
+
+  <div class="wrap">
+    <header class="reveal">
+      <h1 class="title">Nuestra Historia ❤️</h1>
+      <p class="subtitle">Una carta para Miranda, con un quiz interactivo de nuestro amor.</p>
+    </header>
+
+    <section class="grid">
+      <article class="card reveal" aria-labelledby="h-carta1">
+        <h2 id="h-carta1">Capítulo I — Cuando te vi</h2>
+        <p>El día que te vi por primera vez sentí algo especial. Fue como si mi corazón me dijera: “Quiero que ella sea mi novia”. Desde ese instante no dejé de imaginar cómo sería nuestra historia juntos.</p>
+        <p>El día que me enamoré de ti fue inolvidable. Recuerdo aquella vez que fui a tu casa y nos quedamos solos. Mi corazón latía tan rápido que no sabía si debía besarte o no. Coloqué un peluche entre nosotros para disimular, pero al final lo quité… y fuiste tú quien me besó. Ese beso, estando acostados y abrazados, fue uno de los mejores momentos de mi vida. Me puse tan rojo que no podía ni hablar, pero en ese instante nació algo único: empezamos a llamarnos con apodos tiernos como “albondiguita” o “aguacate juntos”. Cosas simples, pero llenas de amor y significado.</p>
+        <p>A pesar de todo lo vivido, nuestro amor siempre ha sido más fuerte que cualquier problema. El apego que sentimos es único, y quiero que sepas algo: te amo con todo mi corazón. Todo lo que he compartido contigo ha sido lo mejor que me ha pasado. Gracias por ser parte de mi vida, Miranda. ❤️</p>
+      </article>
+
+      <article class="card reveal" aria-labelledby="h-carta2">
+        <h2 id="h-carta2">Capítulo II — Ocho meses para sanar</h2>
+        <p>Hola mi amor ❤️</p>
+        <p>A pesar de todo lo que hemos pasado, nuestros corazoncitos siempre se extrañaron. Esos ocho meses no fueron malos, fueron un tiempo para sanar cada uno por su cuenta. Yo tuve mis problemas para expresar mis sentimientos, pero eso nunca significó que dejara de amarte.</p>
+        <p>El volver a hablar contigo fue de lo más bonito, porque sentí como si fuera la primera vez que nos conocimos, como ese momento en el que me enamoré de ti. No solo me enamoré de lo bonita que eres, sino de tu sonrisa, de ese brillo en tus ojos, de cómo te comportas conmigo.</p>
+        <p>Sé que también tuvimos recuerdos hermosos: nuestras idas al cine, los ratos juntos… y sobre todo aquella vez en Bioparque. Verte feliz, emocionarte con las jirafas y los peces, y observar tu carita llena de alegría es algo que jamás voy a olvidar.</p>
+        <p>Contigo he aprendido a ser mejor persona. Nuestra relación incluso me ayudó a sanar cosas con mi familia, a tener más estabilidad emocional. Quiero que sepas que me gustaría estar contigo siempre. Te voy a querer toda mi vida, porque nadie podrá compararse con lo que tenemos.</p>
+        <p>Desde el principio fue difícil, pero poco a poco nos fuimos enamorando de quienes somos realmente. Nuestro vínculo no lo tiene nadie más. Juntos nos vemos preciosos como pareja, y espero que en un futuro podamos casarnos y formar una familia.</p>
+        <p class="kiss">Te amo mucho, mi amor ❤️</p>
+      </article>
+    </section>
+
+    <section class="card quiz-card reveal" aria-labelledby="h-quiz">
+      <h2 id="h-quiz">💖 Quiz: Nuestra Historia de Amor</h2>
+      <p class="subtitle" id="quiz-desc">Responde y descubre tu puntaje. Guarda tu resultado y compártelo.</p>
+
+      <form id="quiz" aria-describedby="quiz-desc">
+        <!-- Preguntas -->
+      </form>
+
+      <div class="acciones">
+        <button type="button" id="calificar">Calificar</button>
+        <button type="button" id="reiniciar" class="secondary">Reiniciar</button>
+        <span id="saved" class="pill" style="display:none"></span>
+      </div>
+
+      <div class="result-box" id="resultado" aria-live="polite"></div>
+    </section>
+
+    <footer>
+      Hecho con 💜 para Miranda. • <a class="link" href="#" id="share">Compartir resultado</a>
+    </footer>
+  </div>
+
+  <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+
+  <script>
+    // 1) Render floating hearts
+    const heartEmoji = ['❤️','💖','💘','💞','💗'];
+    const hearts = document.getElementById('hearts');
+    for (let i = 0; i < 30; i++) {
+      const el = document.createElement('div');
+      el.className = 'heart';
+      el.style.left = Math.random()*100 + 'vw';
+      el.style.fontSize = (14 + Math.random()*28) + 'px';
+      el.style.animationDuration = (18 + Math.random()*18) + 's';
+      el.style.animationDelay = (-Math.random()*30) + 's';
+      el.textContent = heartEmoji[Math.floor(Math.random()*heartEmoji.length)];
+      hearts.appendChild(el);
+    }
+
+    // 2) Reveal on scroll
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {threshold:.1});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+    // 3) Quiz data (10 preguntas)
+    const preguntas = [
+      { id:1, t:'¿Qué sentí el día que te vi por primera vez?',
+        opciones:[
+          {k:'a', txt:'Nervios y nada más'},
+          {k:'b', txt:'Que quería que fueras mi novia ', ok:true},
+          {k:'c', txt:'Que no iba a pasar nada'}
+        ]},
+      { id:2, t:'¿Qué puse entre nosotros la primera vez que no sabía si besarte?',
+        opciones:[
+          {k:'a', txt:'Una almohada'},
+          {k:'b', txt:'Un peluche ', ok:true},
+          {k:'c', txt:'Una cobija'}
+        ]},
+      { id:3, t:'¿Qué pasó después de quitar el peluche?',
+        opciones:[
+          {k:'a', txt:'Te fuiste de la habitación'},
+          {k:'b', txt:'Yo te besé'},
+          {k:'c', txt:'Tú me besaste ', ok:true}
+        ]},
+      { id:4, t:'¿Qué apodos tiernos empezamos a usar?',
+        opciones:[
+          {k:'a', txt:'Gordito y chiquita'},
+          {k:'b', txt:'Albondiguita y aguacate juntos ', ok:true},
+          {k:'c', txt:'Conejito y estrellita'}
+        ]},
+      { id:5, t:'¿Qué representan para mí esos 8 meses separados?',
+        opciones:[
+          {k:'a', txt:'Tiempo perdido'},
+          {k:'b', txt:'Tiempo para sanar y aprender ', ok:true},
+          {k:'c', txt:'Una pausa sin sentido'}
+        ]},
+      { id:6, t:'¿Qué lugar fue muy especial porque vi tu carita feliz con los animales?',
+        opciones:[
+          {k:'a', txt:'Zoológico'},
+          {k:'b', txt:'Bioparque ', ok:true},
+          {k:'c', txt:'Parque de diversiones'}
+        ]},
+      { id:7, t:'¿Qué me enamora de ti además de tu belleza?',
+        opciones:[
+          {k:'a', txt:'Tu ropa'},
+          {k:'b', txt:'Tu forma de ser conmigo ', ok:true},
+          {k:'c', txt:'Tu cabello'}
+        ]},
+      { id:8, t:'¿Qué sueño tengo contigo en el futuro?',
+        opciones:[
+          {k:'a', txt:'Viajar juntos solamente'},
+          {k:'b', txt:'Casarnos y formar una familia ', ok:true},
+          {k:'c', txt:'Tener una mascota nada más'}
+        ]},
+      { id:9, t:'¿Qué representa nuestro vínculo como pareja?',
+        opciones:[
+          {k:'a', txt:'Algo normal'},
+          {k:'b', txt:'Único, que nadie más tiene ', ok:true},
+          {k:'c', txt:'Algo pasajero'}
+        ]},
+      { id:10, t:'¿Qué palabra describe lo que siento por ti?',
+        opciones:[
+          {k:'a', txt:'Cariño'},
+          {k:'b', txt:'Amistad'},
+          {k:'c', txt:'Amor verdadero ', ok:true}
+        ]}
+    ];
+
+    const form = document.getElementById('quiz');
+
+    function renderQuiz(){
+      form.innerHTML = '';
+      preguntas.forEach((q, idx)=>{
+        const fs = document.createElement('fieldset');
+        fs.className = 'q';
+        const lg = document.createElement('legend');
+        lg.className = 'legend';
+        lg.textContent = `${idx+1}. ${q.t}`;
+        fs.appendChild(lg);
+
+        q.opciones.forEach(op=>{
+          const label = document.createElement('label');
+          label.className = 'opcion';
+          label.setAttribute('for', `q${q.id}-${op.k}`);
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `q${q.id}`;
+          input.id = `q${q.id}-${op.k}`;
+          input.value = op.k;
+          input.required = true;
+
+          const span = document.createElement('span');
+          span.innerHTML = op.txt;
+
+          label.appendChild(input);
+          label.appendChild(span);
+          fs.appendChild(label);
+        });
+
+        form.appendChild(fs);
+      })
+    }
+
+    renderQuiz();
+
+    // Helpers
+    const resultado = document.getElementById('resultado');
+    const saved = document.getElementById('saved');
+
+    function confettiBurst(){
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = innerWidth; canvas.height = innerHeight;
+      const pieces = Array.from({length: 120}).map(()=>({
+        x: Math.random()*canvas.width,
+        y: -20 - Math.random()*80,
+        w: 6 + Math.random()*8,
+        h: 10 + Math.random()*14,
+        vy: 2 + Math.random()*5,
+        vx: -2 + Math.random()*4,
+        rot: Math.random()*360,
+        vr: -6 + Math.random()*12,
+        col: `hsl(${Math.random()*360}, 90%, 60%)`
+      }));
+      let t=0, maxT=180;
+      function frame(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(const p of pieces){
+          p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot*Math.PI/180);
+          ctx.fillStyle = p.col;
+          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          ctx.restore();
+        }
+        t++;
+        if(t<maxT) requestAnimationFrame(frame); else ctx.clearRect(0,0,canvas.width,canvas.height);
+      }
+      frame();
+    }
+
+    function calificar(){
+      let correctas = 0;
+      const feedback = [];
+      preguntas.forEach(q=>{
+        const elegido = form.querySelector(`input[name="q${q.id}"]:checked`);
+        if(!elegido) return; // requerido ya, pero por si acaso
+        const op = q.opciones.find(o=>o.k===elegido.value);
+        const ok = !!op?.ok;
+        if(ok) correctas++;
+        feedback.push({id:q.id, ok});
+      });
+      const total = preguntas.length;
+      const pct = Math.round((correctas/total)*100);
+
+      resultado.classList.add('show');
+      resultado.innerHTML = `
+        <div class="score">${correctas}/${total} — ${pct}%</div>
+        <div class="msg">${correctas>=8 ? '¡Perfecto! Nuestro amor está a prueba de todo 💘' : correctas>=5 ? '¡Bien! Vamos por más recuerdos juntos 💞' : 'Apenas calentando motores, sigamos recordando 💫'}</div>
+        <div>${feedback.map((f,i)=>`<span class="pill ${f.ok?'ok':'bad'}">${i+1} ${f.ok?'✔️':'✖️'}</span>`).join(' ')}</div>
+      `;
+
+      // Guardar en localStorage
+      try {
+        localStorage.setItem('quiz_miranda_score', JSON.stringify({correctas, total, pct, fecha: new Date().toISOString()}));
+        saved.style.display = 'inline-block';
+        saved.className = 'pill ok';
+        saved.textContent = 'Guardado ✨';
+        setTimeout(()=> saved.style.display='none', 2500);
+      } catch(err) {}
+
+      if(correctas>=8) confettiBurst();
+      // Scroll a resultados
+      resultado.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+
+    document.getElementById('calificar').addEventListener('click', ()=>{
+      if(!form.reportValidity()) return; // asegura que respondió todas
+      calificar();
+    });
+
+    document.getElementById('reiniciar').addEventListener('click', ()=>{
+      renderQuiz();
+      resultado.classList.remove('show');
+      resultado.innerHTML='';
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+
+    // Compartir resultado (Web Share API o fallback)
+    document.getElementById('share').addEventListener('click', (e)=>{
+      e.preventDefault();
+      const dataRaw = localStorage.getItem('quiz_miranda_score');
+      if(!dataRaw){ alert('Primero responde el quiz para compartir tu resultado.'); return; }
+      const data = JSON.parse(dataRaw);
+      const texto = `Mi resultado en el Quiz de Nuestra Historia: ${data.correctas}/${data.total} (${data.pct}%). Hecho con amor 💖`;
+      if(navigator.share){
+        navigator.share({ title:'Nuestra Historia — Quiz', text: texto, url: location.href }).catch(()=>{});
+      } else {
+        navigator.clipboard.writeText(texto + ' ' + location.href).then(()=>{
+          alert('Resultado copiado al portapapeles. ¡Comparte con quien amas!');
+        });
+      }
+    });
+
+    // Recuperar puntaje guardado (si existe)
+    (function restore(){
+      const dataRaw = localStorage.getItem('quiz_miranda_score');
+      if(!dataRaw) return;
+      try {
+        const {correctas,total,pct,fecha} = JSON.parse(dataRaw);
+        const f = new Date(fecha);
+        resultado.classList.add('show');
+        resultado.innerHTML = `
+          <div class="score">${correctas}/${total} — ${pct}%</div>
+          <div class="msg">Último guardado: ${f.toLocaleDateString()} ${f.toLocaleTimeString()}</div>
+        `;
+      } catch(e){}
+    })();
+  </script>
+</body>
+</html>
